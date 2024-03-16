@@ -1,0 +1,4 @@
+.idea
+redis_data
+.DS_Store
+db.sqlite3
