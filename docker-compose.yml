@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: django-celery
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - celery
+      - celery-beat
+
+  redis:
+    image: "redis:alpine"
+    container_name: django_redis
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - '6379:6379'
+
+  celery:
+    image: django-celery
+    command: celery -A django_celery worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  celery-beat:
+    image: django-celery
+    command: celery -A django_celery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
